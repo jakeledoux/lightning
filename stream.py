@@ -1,3 +1,4 @@
+import camlib
 import socket
 import sys
 
@@ -35,9 +36,8 @@ if role:
                         break
                     if DELIMITER in buffer:
                         *frames, buffer = buffer.split(DELIMITER)
-                        print(frames)
                         for frame in frames:
-                            print(frame)
+                            img = camlib.decode_jpg_bytes(frame)
     # The client will capture and transmit the image stream
     elif role == 'client':
         address = get_command(1)
@@ -47,7 +47,9 @@ if role:
                 sock.connect((address, PORT))
                 while True:
                     try:
-                        sock.sendall(b'Did you ever hear the tragedy of Darth Plagueis the wise? I thought not. It\'s not a story the Jedi would tell you. It\'s a Sith legend. Darth Plagueis was a Dark Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life... He had such a knowledge of the dark side that he could even keep the ones he cared about from dying. The dark side of the Force is a pathway to many abilities some consider to be unnatural. He became so powerful... the only thing he was afraid of was losing his power, which eventually, of course, he did. Unfortunately, he taught his apprentice everything he knew, then his apprentice killed him in his sleep. It\'s ironic he could save others from death, but not himself.' + DELIMITER)
+                        frame = camlib.get_frame()
+                        frame = camlib.encode_jpg_bytes(frame)
+                        sock.sendall(frame)
                     except (ConnectionResetError, BrokenPipeError):
                         print('Connection terminated')
                         break
