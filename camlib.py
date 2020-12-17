@@ -15,6 +15,9 @@ def get_frame():
     if not cam_open:
         print('Initializing camera...')
         cam = cv2.VideoCapture(0)
+        print('Camera initialized with the following properties:')
+        print('  - FPS:  {}'.format(cam.get(cv2.CAP_PROP_FPS))
+        print('  - Size: {}'.format(cam.get(cv2.CAP_PROP_SIZE))
         cam_open = True
 
     # Read frame
