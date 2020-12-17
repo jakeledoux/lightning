@@ -3,6 +3,7 @@ import sys
 
 HOST = '0.0.0.0'
 PORT = 1984
+DELIMITER = b'\n'
 
 
 def get_command(idx):
@@ -23,12 +24,19 @@ if role:
             sock.listen()
             conn, addr = sock.accept()
             with conn:
+                buffer = b''
                 print('Connection established with {}:{}'.format(*addr))
                 while True:
-                    data = conn.recv(1024)
-                    if not data:
+                    data = conn.recv(32)
+                    if data:
+                        buffer += data
+                    else:
                         print('Connection terminated')
                         break
+                    if DELIMITER in buffer:
+                        *frames, buffer = buffer.split(DELIMITER)
+                        for frame in frames:
+                            print(frame)
                     print(data)
     # The client will capture and transmit the image stream
     elif role == 'client':
@@ -40,7 +48,7 @@ if role:
                 while True:
                     try:
                         sock.sendall(b'Hello, world!')
-                    except socket.ConnectionResetError:
+                    except ConnectionResetError:
                         print('Connection terminated')
             print('Receieved', repr(data))
         else:
