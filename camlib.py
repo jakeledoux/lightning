@@ -36,8 +36,10 @@ def show_frame(im):
     cv2.waitKey(1)
 
 
-def encode_jpg_bytes(im, quality=90):
+def encode_jpg_bytes(im, quality=90, scale=1):
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
+    if scale != 1:
+        im = cv2.resize(im, (0, 0), fx=scale, fy=scale)
     jpg_im = cv2.imencode('.jpg', im, encode_param)[1]
     return jpg_im.tobytes()
 
