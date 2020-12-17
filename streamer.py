@@ -1,8 +1,14 @@
-import ffmpeg
+# run this program on each RPi to send a labelled image stream
+import socket
+import time
+from imutils.video import VideoStream
+import imagezmq
 
-(
-    ffmpeg
-    .input('/dev/video0', f='v4l2')
-    .output('pipe:', vcodec='rawvideo', pix_fmt='yuv420p')
-).run()
+sender = imagezmq.ImageSender(connect_to='tcp://10.0.0.215:8080')
 
+rpi_name = socket.gethostname() # send RPi hostname with each image
+picam = VideoStream(usePiCamera=True).start()
+time.sleep(2.0)  # allow camera sensor to warm up
+while True:  # send images as stream until Ctrl-C
+    image = picam.read()
+    sender.send_image(rpi_name, image)
