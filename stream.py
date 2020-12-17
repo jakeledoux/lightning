@@ -4,7 +4,7 @@ import sys
 
 HOST = '0.0.0.0'
 PORT = 1984
-DELIMITER = b'\n'
+DELIMITER = b'\n</img>'
 
 
 def get_command(idx):
@@ -38,6 +38,7 @@ if role:
                         *frames, buffer = buffer.split(DELIMITER)
                         for frame in frames:
                             img = camlib.decode_jpg_bytes(frame)
+                            camlib.show_frame(img)
     # The client will capture and transmit the image stream
     elif role == 'client':
         address = get_command(1)
@@ -49,11 +50,10 @@ if role:
                     try:
                         frame = camlib.get_frame()
                         frame = camlib.encode_jpg_bytes(frame)
-                        sock.sendall(frame)
+                        sock.sendall(frame + DELIMITER)
                     except (ConnectionResetError, BrokenPipeError):
                         print('Connection terminated')
                         break
-            print('Receieved', repr(data))
         else:
             print('No server address specified')
     else:
