@@ -47,7 +47,7 @@ if role:
                 sock.connect((address, PORT))
                 while True:
                     try:
-                        sock.sendall(b'Hello, world!')
+                        sock.sendall(b'Hello, world!' + DELIMITER)
                     except ConnectionResetError:
                         print('Connection terminated')
             print('Receieved', repr(data))
