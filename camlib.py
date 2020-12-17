@@ -11,9 +11,10 @@ def get_frame():
     global cam_open
     # Handle initialization
     if not cam_open:
+        print('Initializing camera...')
         cam = cv2.VideoCapture(0)
         cam.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
-        cap_open = True
+        cam_open = True
 
     # Read frame
     status, frame = cam.read()
@@ -26,6 +27,7 @@ def show_frame(im):
     global window_open
     # Handle initialization
     if not window_open:
+        print('Initializing image window...')
         cv2.namedWindow('Live Feed', cv2.WINDOW_NORMAL)
         window_open = True
     # Show frame
