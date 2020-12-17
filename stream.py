@@ -6,7 +6,7 @@ import sys
 import time
 
 # Regex patterns
-kwarg_pattern = re.compile(r'-{0,2}(\w+)=(\w+)')
+kwarg_pattern = re.compile(r'-{0,2}(\w+)=(\S+)')
 
 
 def get_command(idx):
