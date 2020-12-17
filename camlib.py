@@ -3,21 +3,27 @@ import numpy as np
 
 window_open = False
 cam_open = False
+cam_exp = 0
 cam = None
 
 
-def get_frame():
+def get_frame(auto_exp=False):
     global cam
     global cam_open
+    global cam_exp
     # Handle initialization
     if not cam_open:
         print('Initializing camera...')
         cam = cv2.VideoCapture(0)
-        cam.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
         cam_open = True
 
     # Read frame
     status, frame = cam.read()
+    if auto_exp:
+        exp = sum(cv2.mean(frame))
+        cam_exp += ((exp / 255) - 0.5) * -1
+        cam_exp = min(max(cam_exp, -10), 10)
+        cam.set(cv2.CAP_PROP_EXPOSURE, cam_exp)
     if status:
         return frame
     return False
