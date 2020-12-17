@@ -1,1 +1,2 @@
-vidgear
+opencv-python
+simpleeval
