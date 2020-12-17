@@ -3,6 +3,6 @@ import ffmpeg
 (
     ffmpeg
     .input('/dev/video0', f='v4l2')
-    .output('', vcodec='rawvideo')
+    .output('pipe:', vcodec='rawvideo', pix_fmt='yuv420p')
 ).run()
 
