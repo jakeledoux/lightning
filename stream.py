@@ -1,10 +1,11 @@
 import camlib
 import socket
+import re
+from simpleeval import simple_eval
 import sys
 
-HOST = '0.0.0.0'
-PORT = 1984
-DELIMITER = b'\n</img>'
+# Regex patterns
+kwarg_pattern = re.compile(r'-{0,2}(\w+)=(\w+)')
 
 
 def get_command(idx):
@@ -13,6 +14,22 @@ def get_command(idx):
     else:
         return False
 
+
+def get_kwarg(key, default):
+    for arg in sys.argv[1:]:
+        match = kwarg_pattern.match(arg)
+        if match:
+            arg_key, arg_value = match.groups()
+            if arg_key == key:
+                return simple_eval(arg_value)
+    return default
+
+
+# Global variables
+HOST = '0.0.0.0'
+PORT = 1984
+DELIMITER = b'\n</img>'
+JPG_QUALITY = get_kwarg('quality', 50)
 
 role = get_command(0)
 if role:
@@ -49,7 +66,7 @@ if role:
                 while True:
                     try:
                         frame = camlib.get_frame()
-                        frame = camlib.encode_jpg_bytes(frame)
+                        frame = camlib.encode_jpg_bytes(frame, JPG_QUALITY)
                         sock.sendall(frame + DELIMITER)
                     except (ConnectionResetError, BrokenPipeError):
                         print('Connection terminated')
