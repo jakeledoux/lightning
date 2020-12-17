@@ -38,7 +38,10 @@ if role:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((address, PORT))
                 while True:
-                    sock.sendall(b'Hello, world!')
+                    try:
+                        sock.sendall(b'Hello, world!')
+                    except socket.ConnectionResetError:
+                        print('Connection terminated')
             print('Receieved', repr(data))
         else:
             print('No server address specified')
