@@ -16,7 +16,7 @@ def get_frame():
         print('Initializing camera...')
         cam = cv2.VideoCapture(0)
         print('Camera initialized with the following properties:')
-        print('  - FPS:  {}'.format(cam.get(cv2.CAP_PROP_FPS)))
+        print('  - FPS:  {}'.format(round(cam.get(cv2.CAP_PROP_FPS))))
         print('  - Size: ({}, {})'.format(
             round(cam.get(cv2.CAP_PROP_FRAME_WIDTH)),
             round(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
