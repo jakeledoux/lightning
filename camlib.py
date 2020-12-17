@@ -12,7 +12,8 @@ def get_frame():
     # Handle initialization
     if not cam_open:
         cam = cv2.VideoCapture(0)
-        cam.set(cv2.CV_CAP_PROP_AUTO_EXPOSURE, 1)
+        cam.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
+        cap_open = True
 
     # Read frame
     status, frame = cam.read()
