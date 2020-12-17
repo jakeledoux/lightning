@@ -1,8 +1,8 @@
-import uvicorn
-from vidgear.gears.asyncio import WebGear
+import ffmpeg
 
-web = WebGear(source=0)
+(
+    ffmpeg
+    .input('/dev/video0', f='v4l2')
+    .output(print, vcodec='rawvideo')
+).run()
 
-uvicorn.run(web(), host='0.0.0.0', port=8080)
-
-web.shutdown()
