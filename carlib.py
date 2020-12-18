@@ -8,8 +8,8 @@ import time
 # Constants (recommended that these are set programmatically rather than by
 # editing this source file.
 STEER_PIN = 18
-STEER_GAIN = 75  # Max 'angle' of steering servos. Angle is not 1:1 with real
-                 # life and tends to max out around 80-85
+STEER_GAIN = 40
+STEER_MID = 90
 
 # Servos
 steer_servo = None
@@ -31,7 +31,7 @@ def update_from_dict(controls: dict):
     global steer_servo
 
     if steer_servo:
-        steer_servo.angle = controls['steer'] * STEER_GAIN
+        steer_servo.angle = controls['steer'] * STEER_GAIN + STEER_MID
     else:
         print('Steering servo not initialized. Did you call carlib.init()?')
 
