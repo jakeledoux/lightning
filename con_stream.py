@@ -1,7 +1,8 @@
 import camlib
-import socket
+import json
 import re
 from simpleeval import simple_eval
+import socket
 import sys
 import time
 
@@ -26,10 +27,16 @@ def get_kwarg(key, default):
     return default
 
 
+def update_controls(controls):
+    controls = json.loads(controls.decode('ascii'))
+    print(controls)
+
+
 # Global variables
 HOST = '0.0.0.0'
 PORT = 1984
 DELIMITER = b'\n</con>'
+POLL_RATE = get_kwarg('pollrate', 20)
 
 role = get_command(0)
 if role:
@@ -43,12 +50,17 @@ if role:
             conn, addr = sock.accept()
             with conn:
                 print('Connection established with {}:{}'.format(*addr))
+                last_tx = time.time()
                 while True:
-                    try:
-                        conn.sendall(b'Jakeywakey' + DELIMITER)
-                    except (ConnectionResetError, BrokenPipeError):
-                        print('Connection terminated')
-                        break
+                    # Enforce rate limit
+                    if time.time() - last_tx > 1 / POLL_RATE:
+                        try:
+                            controls = {'steer': 10, 'gas': 100}
+                            conn.sendall(json.dumps(controls).encode() + DELIMITER)
+                            last_tx = time.time()
+                        except (ConnectionResetError, BrokenPipeError):
+                            print('Connection terminated')
+                            break
     # The client will capture and transmit the image stream
     elif role == 'client':
         address = get_command(1)
@@ -66,7 +78,7 @@ if role:
                         break
                     if DELIMITER in buffer:
                         *controls, buffer = buffer.split(DELIMITER)
-                        print(controls)
+                        update_controls(controls[-1])
         else:
             print('No server address specified')
     else:
