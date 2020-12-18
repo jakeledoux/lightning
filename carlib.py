@@ -1,39 +1,40 @@
 """ This module is responsible for managing communication between the Raspberry
     Pi and car hardware.
 """
-
-from gpiozero import AngularServo
 import time
 
 # Constants (recommended that these are set programmatically rather than by
 # editing this source file.
-STEER_PIN = 18
 STEER_GAIN = 40
 STEER_MID = 90
+THROTTLE_GAIN = 100
+SERIAL_PIN = '/dev/serial0'
+DELAY = 0.005
 
-# Servos
-steer_servo = None
+car_serial = None
+last_write = time.time()
 
-def init(do_wiggle=False):
-    global steer_servo
-    steer_servo = AngularServo(STEER_PIN)
-
-    if do_wiggle:
-        steer_servo.min()
-        time.sleep(0.5)
-        steer_servo.max()
-        time.sleep(0.5)
-        steer_servo.mid()
+def init():
+    global car_serial
+    global SERIAL_PIN
+    car_serial = serial.Serial(SERIAL_PIN, 9600)
 
 
 def update_from_dict(controls: dict):
+    global car_serial
+    global DELAY
+    global last_write
     global STEER_GAIN
-    global steer_servo
+    global STEER_MID
+    global THROTTLE_GAIN
 
-    if steer_servo:
-        steer_servo.angle = controls['steer'] * STEER_GAIN + STEER_MID
-    else:
-        print('Steering servo not initialized. Did you call carlib.init()?')
+    if time.time() - last_write > DELAY:
+        if car_serial:
+            steer_angle = int(controls['steer'] * STEER_GAIN + STEER_MID)
+            throttle = int(controls['throttle'] * THROTTLE_GAIN)
+            car_serial.write('s{}t{}'.format(steer_angle, throttle))
+        else:
+            print('Serial communication not initialized. Did you call carlib.init()?')
 
 
 def steer(value: float):
