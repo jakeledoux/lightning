@@ -34,7 +34,7 @@ def update_controls(controls):
 
 # Global variables
 HOST = '0.0.0.0'
-PORT = 1984
+PORT = 1988
 DELIMITER = b'\n</con>'
 POLL_RATE = get_kwarg('pollrate', 20)
 
