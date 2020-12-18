@@ -3,7 +3,8 @@ import numpy as np
 import os
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
-import pygame
+import pygame, pygame.camera
+pygame.init()
 
 window_open = False
 cam_open = False
@@ -21,16 +22,19 @@ def get_frame_pygame():
     # Handle initialization
     if not pg_cam_open:
         print('Initializing pygame camera...')
-        pygame.init()
         pygame.camera.init()
         pg_cam = pygame.camera.Camera('/dev/video0', (640, 480))
         pg_cam.start()
         print('Camera initialized with the following properties:')
         print('  - Size: {}'.format(pg_cam.get_size()))
         pg_cam_open = True
-    if pg_cam.query_image():
-        return np.frombuffer(pg_cam.get_raw())
-    return False
+    frame = pygame.surfarray.array3d(pg_cam.get_image())
+    # Fix rotation
+    frame = frame.swapaxes(0, 1)
+    # Fix color channels
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    return np.zeros((640, 480, 3))
+    return frame
 
 
 def get_frame():
