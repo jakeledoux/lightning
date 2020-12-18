@@ -25,7 +25,7 @@ class ControlLoop:
     @staticmethod
     def get_controls():
         global controls
-        return controls
+        return {key: round(value, 2) for key, value in controls.items()}
 
 def update_controls(gamepad):
     global controls
