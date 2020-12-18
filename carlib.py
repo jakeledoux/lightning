@@ -30,7 +30,6 @@ def update_from_dict(controls: dict):
     global THROTTLE_GAIN
 
     if time.time() - last_write > DELAY:
-        print('GOT IN @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
         if car_serial and car_serial.writable():
             steer_angle = int(controls.get('steer', 0) * STEER_GAIN + STEER_MID)
             throttle = int(controls.get('gas', 0) * THROTTLE_GAIN)
@@ -38,8 +37,6 @@ def update_from_dict(controls: dict):
             last_write = time.time()
         else:
             print('Serial communication not initialized. Did you call carlib.init()?')
-    else:
-        print('no stairway? denied!')
 
 
 def steer(value: float):
