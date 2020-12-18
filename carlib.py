@@ -18,7 +18,7 @@ last_write = time.time()
 def init():
     global car_serial
     global SERIAL_PIN
-    car_serial = serial.Serial(SERIAL_PIN, 9600)
+    car_serial = serial.Serial(SERIAL_PIN, 9600, write_timeout=DELAY)
 
 
 def update_from_dict(controls: dict):
@@ -33,8 +33,11 @@ def update_from_dict(controls: dict):
         if car_serial and car_serial.writable():
             steer_angle = int(controls.get('steer', 0) * STEER_GAIN + STEER_MID)
             throttle = int(controls.get('gas', 0) * THROTTLE_GAIN)
-            car_serial.write('s{}t{}'.format(steer_angle, throttle).encode())
-            last_write = time.time()
+            try:
+                car_serial.write('<s{}t{}/>'.format(steer_angle, throttle).encode())
+                last_write = time.time()
+            except:
+                print('Write timed-out.')
         else:
             print('Serial communication not initialized. Did you call carlib.init()?')
 
