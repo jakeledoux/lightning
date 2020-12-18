@@ -1,3 +1,4 @@
 inputs
 opencv-python
+pyserial
 simpleeval
