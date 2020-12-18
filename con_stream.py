@@ -46,7 +46,7 @@ if role:
                 print('Connection established with {}:{}'.format(*addr))
                 while True:
                     try:
-                        sock.sendall(b'Jakeywakey' + DELIMITER)
+                        conn.sendall(b'Jakeywakey' + DELIMITER)
                     except (ConnectionResetError, BrokenPipeError):
                         print('Connection terminated')
                         break
@@ -58,7 +58,7 @@ if role:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((address, PORT))
                 while True:
-                    data = conn.recv(32)
+                    data = sock.recv(32)
                     if data:
                         buffer += data
                     else:
