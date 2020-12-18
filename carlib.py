@@ -30,13 +30,16 @@ def update_from_dict(controls: dict):
     global THROTTLE_GAIN
 
     if time.time() - last_write > DELAY:
-        if car_serial:
+        print('GOT IN @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+        if car_serial and car_serial.writable():
             steer_angle = int(controls.get('steer', 0) * STEER_GAIN + STEER_MID)
             throttle = int(controls.get('gas', 0) * THROTTLE_GAIN)
             car_serial.write('s{}t{}'.format(steer_angle, throttle).encode())
             last_write = time.time()
         else:
             print('Serial communication not initialized. Did you call carlib.init()?')
+    else:
+        print('no stairway? denied!')
 
 
 def steer(value: float):
@@ -54,18 +57,15 @@ def gas(value: float):
 def panic():
     ''' Neutralizes all controls.
     '''
-    global steer_servo
-
-    if steer_servo:
-        steer_servo.mid()
+    update_from_dict({'steer': 0, 'gas': 0})
 
 
 def close():
     ''' Reset controls and close connections.
     '''
-    global steer_servo
+    global car_serial
 
     panic()
     time.sleep(0.5)
-    if steer_servo:
-        steer_servo.close()
+    if car_serial:
+        car_serial.close()
