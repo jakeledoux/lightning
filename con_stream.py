@@ -42,7 +42,6 @@ if role:
             sock.listen()
             conn, addr = sock.accept()
             with conn:
-                buffer = b''
                 print('Connection established with {}:{}'.format(*addr))
                 while True:
                     try:
@@ -57,6 +56,7 @@ if role:
             print('Attempting connection to {}:{}'.format(address, PORT))
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((address, PORT))
+                buffer = b''
                 while True:
                     data = sock.recv(32)
                     if data:
