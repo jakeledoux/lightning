@@ -1,3 +1,4 @@
+import carlib
 import conlib
 import json
 import re
@@ -29,7 +30,7 @@ def get_kwarg(key, default):
 
 def update_controls(controls):
     controls = json.loads(controls.decode('ascii'))
-    print(controls)
+    carlib.update_from_dict(controls)
 
 
 # Global variables
@@ -66,6 +67,8 @@ if role:
     elif role == 'client':
         address = get_command(1)
         if address:
+            print('Initializing car')
+            carlib.init()
             print('Attempting connection to {}:{}'.format(address, PORT))
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((address, PORT))
