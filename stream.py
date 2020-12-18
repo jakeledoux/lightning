@@ -77,7 +77,7 @@ if role:
                 sock.connect((address, PORT))
                 while True:
                     try:
-                        frame = camlib.get_frame()
+                        frame = camlib.get_frame_pygame()
                         frame = camlib.encode_jpg_bytes(frame, JPG_QUALITY,
                                                         scale=IMG_SCALE)
                         sock.sendall(frame + DELIMITER)
