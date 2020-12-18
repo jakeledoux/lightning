@@ -64,8 +64,8 @@ if role:
                     else:
                         print('Connection terminated')
                         break
-                    if delimiter in buffer:
-                        *controls, buffer = buffer.split(delimiter)
+                    if DELIMITER in buffer:
+                        *controls, buffer = buffer.split(DELIMITER)
                         print(controls)
         else:
             print('No server address specified')
