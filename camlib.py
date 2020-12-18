@@ -1,10 +1,36 @@
 import cv2
 import numpy as np
+import os
+
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
+import pygame
 
 window_open = False
 cam_open = False
 cam_exp = 0
 cam = None
+pg_cam_open = False
+pg_cam_exp = 0
+pg_cam = None
+
+
+def get_frame_pygame():
+    global pg_cam
+    global pg_cam_open
+    global pg_cam_exp
+    # Handle initialization
+    if not pg_cam_open:
+        print('Initializing pygame camera...')
+        pygame.init()
+        pygame.camera.init()
+        pg_cam = pygame.camera.Camera('/dev/video0', (640, 480))
+        pg_cam.start()
+        print('Camera initialized with the following properties:')
+        print('  - Size: {}'.format(pg_cam.get_size()))
+        pg_cam_open = True
+    if pg_cam.query_image():
+        return np.frombuffer(pg_cam.get_raw())
+    return False
 
 
 def get_frame():
