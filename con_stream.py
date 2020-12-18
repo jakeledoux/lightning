@@ -1,4 +1,4 @@
-import camlib
+import conlib
 import json
 import re
 from simpleeval import simple_eval
@@ -51,16 +51,17 @@ if role:
             with conn:
                 print('Connection established with {}:{}'.format(*addr))
                 last_tx = time.time()
-                while True:
-                    # Enforce rate limit
-                    if time.time() - last_tx > 1 / POLL_RATE:
-                        try:
-                            controls = {'steer': 10, 'gas': 100}
-                            conn.sendall(json.dumps(controls).encode() + DELIMITER)
-                            last_tx = time.time()
-                        except (ConnectionResetError, BrokenPipeError):
-                            print('Connection terminated')
-                            break
+                with conlib.ControlLoop() as controller:
+                    while True:
+                        # Enforce rate limit
+                        if time.time() - last_tx > 1 / POLL_RATE:
+                            try:
+                                controls = controller.get_controls()
+                                conn.sendall(json.dumps(controls).encode() + DELIMITER)
+                                last_tx = time.time()
+                            except (ConnectionResetError, BrokenPipeError):
+                                print('Connection terminated')
+                                break
     # The client will capture and transmit the image stream
     elif role == 'client':
         address = get_command(1)

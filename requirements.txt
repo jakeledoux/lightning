@@ -1,2 +1,3 @@
+inputs
 opencv-python
 simpleeval
