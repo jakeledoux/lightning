@@ -33,7 +33,6 @@ def get_frame_pygame():
     frame = frame.swapaxes(0, 1)
     # Fix color channels
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    return np.zeros((640, 480, 3))
     return frame
 
 
