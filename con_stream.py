@@ -5,6 +5,7 @@ from simpleeval import simple_eval
 import socket
 import sys
 import time
+from threading import Thread
 
 # Regex patterns
 kwarg_pattern = re.compile(r'-{0,2}(\w+)=(\S+)')
@@ -55,7 +56,7 @@ if role:
             with conn:
                 print('Connection established with {}:{}'.format(*addr))
                 last_tx = time.time()
-                controls = Thread(target=controller.xbox)
+                controls = Thread(target=conlib.xbox)
                 controls.daemon = True
                 controls.start()
                 while True:
