@@ -5,6 +5,7 @@ from simpleeval import simple_eval
 import socket
 import sys
 import time
+from threading import Thread
 
 # Regex patterns
 kwarg_pattern = re.compile(r'-{0,2}(\w+)=(\S+)')
@@ -28,7 +29,10 @@ def get_kwarg(key, default):
 
 
 def update_controls(controls):
+    global PRINT_CONTROLS
     controls = json.loads(controls.decode('ascii'))
+    if PRINT_CONTROLS:
+        print(controls)
     carlib.update_from_dict(controls)
 
 
@@ -37,6 +41,7 @@ HOST = '0.0.0.0'
 PORT = 1988
 DELIMITER = b'\n</con>'
 POLL_RATE = get_kwarg('pollrate', 10000)
+PRINT_CONTROLS = get_kwarg('print', False)
 
 role = get_command(0)
 if role:
@@ -51,17 +56,19 @@ if role:
             with conn:
                 print('Connection established with {}:{}'.format(*addr))
                 last_tx = time.time()
-                with conlib.ControlLoop() as controller:
-                    while True:
-                        # Enforce rate limit
-                        if time.time() - last_tx > 1 / POLL_RATE:
-                            try:
-                                controls = controller.get_controls()
-                                conn.sendall(json.dumps(controls).encode() + DELIMITER)
-                                last_tx = time.time()
-                            except (ConnectionResetError, BrokenPipeError):
-                                print('Connection terminated')
-                                break
+                controls = Thread(target=conlib.xbox)
+                controls.daemon = True
+                controls.start()
+                while True:
+                    # Enforce rate limit
+                    if time.time() - last_tx > 1 / POLL_RATE:
+                        try:
+                            controls = conlib.controls
+                            conn.sendall(json.dumps(controls).encode() + DELIMITER)
+                            last_tx = time.time()
+                        except (ConnectionResetError, BrokenPipeError):
+                            print('Connection terminated')
+                            break
     # The client will capture and transmit the image stream
     elif role == 'client':
         address = get_command(1)
