@@ -74,15 +74,19 @@ if role:
                 sock.connect((address, PORT))
                 buffer = b''
                 while True:
-                    data = sock.recv(32)
-                    if data:
-                        buffer += data
-                    else:
-                        print('Connection terminated')
+                    try:
+                        data = sock.recv(32)
+                        if data:
+                            buffer += data
+                        else:
+                            break
+                        if DELIMITER in buffer:
+                            *controls, buffer = buffer.split(DELIMITER)
+                            update_controls(controls[-1])
+                    except ConnectionResetError:
                         break
-                    if DELIMITER in buffer:
-                        *controls, buffer = buffer.split(DELIMITER)
-                        update_controls(controls[-1])
+            print('Connection terminated')
+            carlib.close()
         else:
             print('No server address specified')
     else:

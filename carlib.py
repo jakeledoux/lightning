@@ -3,6 +3,7 @@
 """
 
 from gpiozero import AngularServo
+import time
 
 # Constants (recommended that these are set programmatically rather than by
 # editing this source file.
@@ -18,7 +19,6 @@ def init(do_wiggle=False):
     steer_servo = AngularServo(STEER_PIN)
 
     if do_wiggle:
-        import time
         steer_servo.min()
         time.sleep(0.5)
         steer_servo.max()
@@ -55,3 +55,14 @@ def panic():
 
     if steer_servo:
         steer_servo.mid()
+
+
+def close():
+    ''' Reset controls and close connections.
+    '''
+    global steer_servo
+
+    panic()
+    time.sleep(0.5)
+    if steer_servo:
+        steer_servo.close()
