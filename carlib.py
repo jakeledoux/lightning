@@ -1,6 +1,7 @@
 """ This module is responsible for managing communication between the Raspberry
     Pi and car hardware.
 """
+import serial
 import time
 
 # Constants (recommended that these are set programmatically rather than by
@@ -8,7 +9,7 @@ import time
 STEER_GAIN = 40
 STEER_MID = 90
 THROTTLE_GAIN = 100
-SERIAL_PIN = '/dev/serial0'
+SERIAL_PIN = '/dev/ttyACM0'
 DELAY = 0.005
 
 car_serial = None
@@ -30,9 +31,10 @@ def update_from_dict(controls: dict):
 
     if time.time() - last_write > DELAY:
         if car_serial:
-            steer_angle = int(controls['steer'] * STEER_GAIN + STEER_MID)
-            throttle = int(controls['throttle'] * THROTTLE_GAIN)
-            car_serial.write('s{}t{}'.format(steer_angle, throttle))
+            steer_angle = int(controls.get('steer', 0) * STEER_GAIN + STEER_MID)
+            throttle = int(controls.get('gas', 0) * THROTTLE_GAIN)
+            car_serial.write('s{}t{}'.format(steer_angle, throttle).encode())
+            last_write = time.time()
         else:
             print('Serial communication not initialized. Did you call carlib.init()?')
 
