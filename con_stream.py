@@ -1,4 +1,3 @@
-import carlib
 import conlib
 import json
 import re
@@ -37,7 +36,7 @@ def update_controls(controls):
 HOST = '0.0.0.0'
 PORT = 1988
 DELIMITER = b'\n</con>'
-POLL_RATE = get_kwarg('pollrate', 20)
+POLL_RATE = get_kwarg('pollrate', 10000)
 
 role = get_command(0)
 if role:
@@ -68,6 +67,7 @@ if role:
         address = get_command(1)
         if address:
             print('Initializing car')
+            import carlib
             carlib.init()
             print('Attempting connection to {}:{}'.format(address, PORT))
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
