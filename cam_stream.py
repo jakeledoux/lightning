@@ -50,7 +50,7 @@ if role:
                 buffer = b''
                 print('Connection established with {}:{}'.format(*addr))
                 while True:
-                    data = conn.recv(32)
+                    data = conn.recv(4096)
                     if data:
                         buffer += data
                     else:
@@ -58,22 +58,21 @@ if role:
                         break
                     if DELIMITER in buffer:
                         *frames, buffer = buffer.split(DELIMITER)
-                        for frame in frames:
-                            frame, timestamp = frame.split(IMG_DELIMITER)
-                            # Log frame processed timestamps
-                            frame_times.append(time.time())
-                            img = camlib.decode_jpg_bytes(frame)
-                            camlib.show_frame(img)
-                            # Calculate framerate
-                            if len(frame_times) >= 60:
-                                duration = frame_times[-1] - frame_times[0]
-                                print('Current framerate: {}'.format(
-                                    round(1 / (duration / len(frame_times)))
-                                ))
-                                print('Current latency: {}'.format(
-                                    time.time() - float(timestamp)
-                                ))
-                                frame_times = list()
+                        frame, timestamp = frames[-1].split(IMG_DELIMITER)
+                        # Log frame processed timestamps
+                        frame_times.append(time.time())
+                        img = camlib.decode_jpg_bytes(frame)
+                        # camlib.show_frame(img)
+                        # Calculate framerate
+                        if len(frame_times) >= 13:
+                            duration = frame_times[-1] - frame_times[0]
+                            print('Current framerate: {}'.format(
+                                round(1 / (duration / len(frame_times)))
+                            ))
+                            print('Current latency: {}'.format(
+                                time.time() - float(timestamp)
+                            ))
+                            frame_times = list()
     # The client will capture and transmit the image stream
     elif role == 'client':
         address = get_command(1)
