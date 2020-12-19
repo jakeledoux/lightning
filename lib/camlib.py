@@ -56,7 +56,7 @@ def get_frame():
     status, frame = cam.read()
     if status:
         return frame
-    return False
+    return None
 
 
 def show_frame(im):

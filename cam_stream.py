@@ -88,6 +88,8 @@ if role:
                             frame = camlib.get_frame_pygame()
                         else:
                             frame = camlib.get_frame()
+                            if frame is None:
+                                continue
                         frame = camlib.encode_jpg_bytes(frame, JPG_QUALITY,
                                                         scale=IMG_SCALE)
                         timestamp = str(time.time()).encode()
