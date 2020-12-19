@@ -32,6 +32,7 @@ PORT = 1984
 DELIMITER = b'\n</img>'
 JPG_QUALITY = get_kwarg('quality', 50)
 IMG_SCALE = get_kwarg('scale', 1)
+TIMEOUT = get_kwarg('timeout', 5)
 
 role = get_command(0)
 if role:
@@ -40,7 +41,7 @@ if role:
         print('Listening on {}:{}'.format(HOST, PORT))
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((HOST, PORT))
-            sock.settimeout(5)
+            sock.settimeout(TIMEOUT)
             sock.listen()
             conn, addr = sock.accept()
             with conn:
@@ -74,6 +75,7 @@ if role:
         if address:
             print('Attempting connection to {}:{}'.format(address, PORT))
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(TIMEOUT)
                 sock.connect((address, PORT))
                 while True:
                     try:
