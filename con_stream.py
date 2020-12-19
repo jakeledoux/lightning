@@ -22,7 +22,10 @@ def get_kwarg(key, default):
         if match:
             arg_key, arg_value = match.groups()
             if arg_key == key:
-                return simple_eval(arg_value)
+                try:
+                    return simple_eval(arg_value)
+                except SyntaxError:
+                    return arg_value
     return default
 
 
@@ -41,6 +44,7 @@ DELIMITER = b'\n</con>'
 POLL_RATE = get_kwarg('pollrate', 70)
 PRINT_CONTROLS = get_kwarg('print', False)
 TIMEOUT = get_kwarg('timeout', 5)
+SERIAL = get_kwarg('serial', None)
 
 role = get_command(0)
 if role:
@@ -61,8 +65,12 @@ if role:
                     if time.time() - last_tx > 1 / POLL_RATE:
                         try:
                             controls = conlib.get_controls()
-                            conn.sendall(json.dumps(controls).encode() + DELIMITER)
-                            last_tx = time.time()
+                            if controls:
+                                conn.sendall(json.dumps(controls).encode() + DELIMITER)
+                                last_tx = time.time()
+                            else:
+                                print('Gamepad not connected.')
+                                break
                         except (ConnectionResetError, BrokenPipeError):
                             print('Connection terminated')
                             break
@@ -72,7 +80,7 @@ if role:
         if address:
             print('Initializing car')
             from lib import carlib
-            if carlib.init():
+            if carlib.init(SERIAL):
                 print('Attempting connection to {}:{}'.format(address, PORT))
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                     sock.settimeout(TIMEOUT)

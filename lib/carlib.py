@@ -15,11 +15,12 @@ DELAY = 0.005
 car_serial = None
 last_write = time.time()
 
-def init():
+def init(serial_location=None):
     global car_serial
     global SERIAL_PIN
     try:
-        car_serial = serial.Serial(SERIAL_PIN, 9600, write_timeout=DELAY)
+        car_serial = serial.Serial(serial_location or SERIAL_PIN, 9600,
+                                   write_timeout=DELAY)
         return True
     except serial.serialutil.SerialException:
         print('Failed to connect to Arduino. Is it plugged in?')
