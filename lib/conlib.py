@@ -5,7 +5,10 @@ gamepad = XInputJoystick(0)
 def get_controls():
     global gamepad
     if gamepad is not None:
-        state = gamepad.get_state().gamepad
+        try:
+            state = gamepad.get_state().gamepad
+        except AttributeError:
+            return False
         buttons = get_bit_values(state.buttons)
 
         return {'steer': state.l_thumb_x / 32768,
