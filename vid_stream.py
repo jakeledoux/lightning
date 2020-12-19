@@ -80,8 +80,10 @@ if role:
                 while True:
                     try:
                         frame = camlib.get_frame_pygame()
+                        start = time.time()
                         frame = camlib.encode_jpg_bytes(frame, JPG_QUALITY,
                                                         scale=IMG_SCALE)
+                        print('Process time: {}'.format(time.time() - frame))
                         sock.sendall(frame + DELIMITER)
                     except (ConnectionResetError, BrokenPipeError):
                         print('Connection terminated')
