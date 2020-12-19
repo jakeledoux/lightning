@@ -4,6 +4,7 @@
 #define STEER_PIN 5
 #define MOTOR_ENABLED true
 #define STEER_ENABLED true
+#define READBACK_ENABLED false
 
 Servo motor_servo;
 Servo steer_servo;
@@ -21,7 +22,8 @@ void setup() {
   }
   Serial.begin(9600);
   Serial.setTimeout(3);
-  Serial.println("Ready.");
+  if (READBACK_ENABLED)
+    Serial.println("Ready.");
 }
 
 // TODO: Panic if no serial input recieved for N seconds
@@ -30,18 +32,21 @@ void loop() {
   // Update controls based on serial input
   if (Serial.available()) {
     String command = Serial.readString();
-    int steerIdx = command.indexOf("s");
-    int throttleIdx = command.indexOf("t");
-    if (command.startsWith("s")) {
+
+    if (command.startsWith("<") && command.endsWith("/>")){
+      int steerIdx = command.indexOf("s");
+      int throttleIdx = command.indexOf("t");
+      int endIdx = command.indexOf("/");
       steering = command.substring(steerIdx + 1, throttleIdx).toInt();
+      throttle = command.substring(throttleIdx + 1, endIdx).toInt();
     }
-    if (command.charAt(throttleIdx) == 't') {
-      throttle = command.substring(throttleIdx + 1).toInt();
+    
+    if (READBACK_ENABLED) {
+      Serial.print("S: ");
+      Serial.println(steering);
+      Serial.print("T: ");
+      Serial.println(throttle);
     }
-    Serial.print("S: ");
-    Serial.println(steering);
-    Serial.print("T: ");
-    Serial.println(throttle);
   }
 
   if (MOTOR_ENABLED) {
