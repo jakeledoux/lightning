@@ -1,4 +1,4 @@
-inputs
 opencv-python
+pygame
 pyserial
 simpleeval
