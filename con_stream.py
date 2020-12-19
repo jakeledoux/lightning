@@ -71,25 +71,25 @@ if role:
         if address:
             print('Initializing car')
             from lib import carlib
-            carlib.init()
-            print('Attempting connection to {}:{}'.format(address, PORT))
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.connect((address, PORT))
-                buffer = b''
-                while True:
-                    try:
-                        data = sock.recv(32)
-                        if data:
-                            buffer += data
-                        else:
+            if carlib.init():
+                print('Attempting connection to {}:{}'.format(address, PORT))
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                    sock.connect((address, PORT))
+                    buffer = b''
+                    while True:
+                        try:
+                            data = sock.recv(32)
+                            if data:
+                                buffer += data
+                            else:
+                                break
+                            if DELIMITER in buffer:
+                                *controls, buffer = buffer.split(DELIMITER)
+                                update_controls(controls[-1])
+                        except ConnectionResetError:
                             break
-                        if DELIMITER in buffer:
-                            *controls, buffer = buffer.split(DELIMITER)
-                            update_controls(controls[-1])
-                    except ConnectionResetError:
-                        break
-            print('Connection terminated')
-            carlib.close()
+                print('Connection terminated')
+                carlib.close()
         else:
             print('No server address specified')
     else:

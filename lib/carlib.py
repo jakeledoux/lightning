@@ -18,7 +18,12 @@ last_write = time.time()
 def init():
     global car_serial
     global SERIAL_PIN
-    car_serial = serial.Serial(SERIAL_PIN, 9600, write_timeout=DELAY)
+    try:
+        car_serial = serial.Serial(SERIAL_PIN, 9600, write_timeout=DELAY)
+        return True
+    except serial.serialutil.SerialException:
+        print('Failed to connect to Arduino. Is it plugged in?')
+        return False
 
 
 def update_from_dict(controls: dict):
