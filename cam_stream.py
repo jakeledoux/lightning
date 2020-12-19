@@ -29,7 +29,8 @@ def get_kwarg(key, default):
 # Global variables
 HOST = '0.0.0.0'
 PORT = 1984
-DELIMITER = b'\n</img>'
+DELIMITER = b'\n</ts>'
+IMG_DELIMITER = b'</img>'
 JPG_QUALITY = get_kwarg('quality', 50)
 IMG_SCALE = get_kwarg('scale', 1)
 TIMEOUT = get_kwarg('timeout', 5)
@@ -58,6 +59,7 @@ if role:
                     if DELIMITER in buffer:
                         *frames, buffer = buffer.split(DELIMITER)
                         for frame in frames:
+                            frame, timestamp = frame.split(IMG_DELIMITER)
                             # Log frame processed timestamps
                             frame_times.append(time.time())
                             img = camlib.decode_jpg_bytes(frame)
@@ -67,6 +69,9 @@ if role:
                                 duration = frame_times[-1] - frame_times[0]
                                 print('Current framerate: {}'.format(
                                     round(1 / (duration / len(frame_times)))
+                                ))
+                                print('Current latency: {}'.format(
+                                    time.time() - float(timestamp)
                                 ))
                                 frame_times = list()
     # The client will capture and transmit the image stream
@@ -80,11 +85,10 @@ if role:
                 while True:
                     try:
                         frame = camlib.get_frame_pygame()
-                        start = time.time()
                         frame = camlib.encode_jpg_bytes(frame, JPG_QUALITY,
                                                         scale=IMG_SCALE)
-                        print('Process time: {}'.format(time.time() - frame))
-                        sock.sendall(frame + DELIMITER)
+                        timestamp += str(time.time()).encode()
+                        sock.sendall(frame + IMG_DELIMITER + timestamp + DELIMITER)
                     except (ConnectionResetError, BrokenPipeError):
                         print('Connection terminated')
                         break
