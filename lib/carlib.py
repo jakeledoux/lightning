@@ -39,11 +39,12 @@ def update_from_dict(controls: dict):
         if car_serial and car_serial.writable():
             steer_angle = int(controls.get('steer', 0) * STEER_GAIN + STEER_MID)
             throttle = int(controls.get('gas', 0) * THROTTLE_GAIN)
+            beep = int(controls.get('beep', 0))
             try:
-                car_serial.write('<s{}t{}/>'.format(steer_angle, throttle).encode())
+                car_serial.write('<s{}t{}b{}/>'.format(steer_angle, throttle, beep).encode())
                 last_write = time.time()
             except:
-                print('Write timed-out.')
+                print('Write timed-out. Did you compile Carduino with READBACK_ENABLED by accident?')
         else:
             print('Serial communication not initialized. Did you call carlib.init()?')
 
