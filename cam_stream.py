@@ -34,6 +34,7 @@ IMG_DELIMITER = b'</img>'
 JPG_QUALITY = get_kwarg('quality', 50)
 IMG_SCALE = get_kwarg('scale', 1)
 TIMEOUT = get_kwarg('timeout', 5)
+PYGAME = get_kwarg('pygame', False)
 
 role = get_command(0)
 if role:
@@ -62,7 +63,7 @@ if role:
                         # Log frame processed timestamps
                         frame_times.append(time.time())
                         img = camlib.decode_jpg_bytes(frame)
-                        # camlib.show_frame(img)
+                        camlib.show_frame(img)
                         # Calculate framerate
                         if len(frame_times) >= 13:
                             duration = frame_times[-1] - frame_times[0]
@@ -83,7 +84,10 @@ if role:
                 sock.connect((address, PORT))
                 while True:
                     try:
-                        frame = camlib.get_frame_pygame()
+                        if PYGAME:
+                            frame = camlib.get_frame_pygame()
+                        else:
+                            frame = camlib.get_frame()
                         frame = camlib.encode_jpg_bytes(frame, JPG_QUALITY,
                                                         scale=IMG_SCALE)
                         timestamp = str(time.time()).encode()

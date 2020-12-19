@@ -2,9 +2,9 @@ import cv2
 import numpy as np
 import os
 
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
-import pygame, pygame.camera
-pygame.init()
+# os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
+# import pygame, pygame.camera
+# pygame.init()
 
 window_open = False
 cam_open = False
