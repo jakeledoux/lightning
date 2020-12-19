@@ -87,7 +87,7 @@ if role:
                         frame = camlib.get_frame_pygame()
                         frame = camlib.encode_jpg_bytes(frame, JPG_QUALITY,
                                                         scale=IMG_SCALE)
-                        timestamp += str(time.time()).encode()
+                        timestamp = str(time.time()).encode()
                         sock.sendall(frame + IMG_DELIMITER + timestamp + DELIMITER)
                     except (ConnectionResetError, BrokenPipeError):
                         print('Connection terminated')

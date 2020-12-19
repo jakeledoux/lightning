@@ -1,2 +1,2 @@
-py %~dp0..\vid_stream.py server
+py %~dp0..\cam_stream.py server
 pause
