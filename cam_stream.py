@@ -1,34 +1,11 @@
-import re
+from lib.iolib import *
 from lib import camlib
-from simpleeval import simple_eval
 import socket
-import sys
 import time
-
-# Regex patterns
-kwarg_pattern = re.compile(r'-{0,2}(\w+)=(\S+)')
-
-
-def get_command(idx):
-    if len(sys.argv) > idx + 1:
-        return sys.argv[idx + 1].lower().strip()
-    else:
-        return False
-
-
-def get_kwarg(key, default):
-    for arg in sys.argv[1:]:
-        match = kwarg_pattern.match(arg)
-        if match:
-            arg_key, arg_value = match.groups()
-            if arg_key == key:
-                return simple_eval(arg_value)
-    return default
-
 
 # Global variables
 HOST = '0.0.0.0'
-PORT = 1984
+PORT = get_kwarg('port', 1984)
 DELIMITER = b'\n</ts>'
 IMG_DELIMITER = b'</img>'
 JPG_QUALITY = get_kwarg('quality', 50)
@@ -82,6 +59,7 @@ if role:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.settimeout(TIMEOUT)
                 sock.connect((address, PORT))
+                print('Connection established with {}:{}'.format(address, PORT))
                 while True:
                     try:
                         if PYGAME:
