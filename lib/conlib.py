@@ -8,7 +8,7 @@ def get_controls():
     buttons = get_bit_values(state.buttons)
 
     return {'steer': state.l_thumb_x / 32768,
-            'gas': (state.right_trigger / 255) - (state.right_trigger / 255),
+            'gas': (state.right_trigger / 255) - (state.left_trigger / 255),
             'beep': buttons[17],
             'start': buttons[27]}
 

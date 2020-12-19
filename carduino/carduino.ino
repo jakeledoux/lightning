@@ -49,12 +49,10 @@ void loop() {
     }
   }
 
-  if (MOTOR_ENABLED) {
+  if (MOTOR_ENABLED)
     motor_servo.writeMicroseconds(
       map(throttle, 0, 100, 1500, 1800)
     );
-  }
-  if (STEER_ENABLED) {
+  if (STEER_ENABLED)
     steer_servo.write(steering);
-  }
 }
