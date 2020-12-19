@@ -1,7 +1,7 @@
-import camlib
-import socket
 import re
+from lib import camlib
 from simpleeval import simple_eval
+import socket
 import sys
 import time
 

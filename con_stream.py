@@ -1,11 +1,9 @@
-import conlib
 import json
 import re
 from simpleeval import simple_eval
 import socket
 import sys
 import time
-from threading import Thread
 
 # Regex patterns
 kwarg_pattern = re.compile(r'-{0,2}(\w+)=(\S+)')
@@ -47,6 +45,7 @@ role = get_command(0)
 if role:
     # The server will recieve and view the image stream
     if role == 'server':
+        from lib import conlib
         print('Listening on {}:{}'.format(HOST, PORT))
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((HOST, PORT))
@@ -56,14 +55,11 @@ if role:
             with conn:
                 print('Connection established with {}:{}'.format(*addr))
                 last_tx = time.time()
-                controls = Thread(target=conlib.xbox)
-                controls.daemon = True
-                controls.start()
                 while True:
                     # Enforce rate limit
                     if time.time() - last_tx > 1 / POLL_RATE:
                         try:
-                            controls = conlib.controls
+                            controls = conlib.get_controls()
                             conn.sendall(json.dumps(controls).encode() + DELIMITER)
                             last_tx = time.time()
                         except (ConnectionResetError, BrokenPipeError):
@@ -74,7 +70,7 @@ if role:
         address = get_command(1)
         if address:
             print('Initializing car')
-            import carlib
+            from lib import carlib
             carlib.init()
             print('Attempting connection to {}:{}'.format(address, PORT))
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
