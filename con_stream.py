@@ -1,15 +1,17 @@
-from lib.iolib import *
 import json
 import socket
 import time
 
+from lib.controller import Controller, ControlFrame
+from lib.iolib import *
+
 
 def update_controls(controls):
     global PRINT_CONTROLS
-    controls = json.loads(controls.decode('ascii'))
+    controls = ControlFrame.from_json(controls.decode('ascii'))
     if PRINT_CONTROLS:
         print(controls)
-    carlib.update_from_dict(controls)
+    carlib.update_from_dict(controls.to_dict())
 
 
 # Global variables
@@ -25,7 +27,7 @@ role = get_command(0)
 if role:
     # The server will recieve and view the image stream
     if role == 'server':
-        from lib import conlib
+        controller = Controller()
         print('Listening on {}:{}'.format(HOST, PORT))
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((HOST, PORT))
@@ -39,9 +41,9 @@ if role:
                     # Enforce rate limit
                     if time.time() - last_tx > 1 / POLL_RATE:
                         try:
-                            controls = conlib.get_controls()
+                            controls = controller.poll()
                             if controls:
-                                conn.sendall(json.dumps(controls).encode() + DELIMITER)
+                                conn.sendall(controls.to_json().encode() + DELIMITER)
                                 last_tx = time.time()
                             else:
                                 print('Gamepad not connected.')
@@ -55,6 +57,7 @@ if role:
         if address:
             print('Initializing car')
             from lib import carlib
+            print(SERIAL)
             if carlib.init(SERIAL):
                 print('Attempting connection to {}:{}'.format(address, PORT))
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:

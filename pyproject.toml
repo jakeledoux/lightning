@@ -9,6 +9,9 @@ readme = "README.md"
 python = "^3.12"
 simpleeval = "^0.9.13"
 pyglet = "^2.0.14"
+hidapi = "^0.14.0"
+pyserial = "^3.5"
+dataclasses-json = "^0.6.4"
 
 
 [build-system]
