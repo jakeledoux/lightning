@@ -44,22 +44,27 @@ enum Command {
 
 #[derive(clap::Args, Debug)]
 struct GamePadArgs {
+    /// timeout for connecting to controller
     #[arg(short, long, default_value_t = 10)]
-    controller_timeout_seconds: u64,
+    controller_timeout: u64,
 }
 
 #[derive(clap::Args, Debug)]
 struct CarArgs {
     // TODO: validate argument in range
-    #[arg(short, long, default_value_t = 0.0)]
+    #[arg(long, default_value_t = 0.0)]
     throttle_limit: f32,
+    // TTY path to Arduino serial connection
+    #[arg(long, default_value = "/dev/cu.usbmodem11121301")]
+    tty_path: String,
 }
 
 async fn run_car(car_args: CarArgs) -> anyhow::Result<()> {
     // connect to car
-    let tty_path = "/dev/cu.usbmodem11121301";
-    let mut car_conn =
-        car::CarConn::connect(tty_path, ThrottleLimit::Limit(car_args.throttle_limit))?;
+    let mut car_conn = car::CarConn::connect(
+        &car_args.tty_path,
+        ThrottleLimit::Limit(car_args.throttle_limit),
+    )?;
 
     // connect to controller
     let address = "127.0.0.1:25565";
@@ -82,10 +87,9 @@ async fn run_car(car_args: CarArgs) -> anyhow::Result<()> {
 
 async fn run_controller(gamepad_args: GamePadArgs) -> anyhow::Result<()> {
     // connect controller
-    let mut controller = Controller::find_any_controller(Duration::from_secs(
-        gamepad_args.controller_timeout_seconds,
-    ))
-    .await?;
+    let mut controller =
+        Controller::find_any_controller(Duration::from_secs(gamepad_args.controller_timeout))
+            .await?;
 
     // await TCP connection from car
     event!(Level::INFO, "listening TCP");
@@ -114,15 +118,15 @@ async fn run_controller(gamepad_args: GamePadArgs) -> anyhow::Result<()> {
 
 async fn run_integrated(car_args: CarArgs, gamepad_args: GamePadArgs) -> anyhow::Result<()> {
     // connect controller
-    let mut controller = Controller::find_any_controller(Duration::from_secs(
-        gamepad_args.controller_timeout_seconds,
-    ))
-    .await?;
+    let mut controller =
+        Controller::find_any_controller(Duration::from_secs(gamepad_args.controller_timeout))
+            .await?;
 
     // connect to car
-    let tty_path = "/dev/cu.usbmodem11121301";
-    let mut car_conn =
-        car::CarConn::connect(tty_path, ThrottleLimit::Limit(car_args.throttle_limit))?;
+    let mut car_conn = car::CarConn::connect(
+        &car_args.tty_path,
+        ThrottleLimit::Limit(car_args.throttle_limit),
+    )?;
 
     loop {
         let frame = controller.poll();
