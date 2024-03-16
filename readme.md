@@ -16,11 +16,11 @@ connected.
 ### Example
 
 1. On a MacBook with a connected controller:
-  - `lightning controller`
+    - `lightning controller`
 2. On a Raspberry Pi connected to the Arduino over USB:
-  - `lightning car /dev/ttyACM0 laptopaddress:25565`
+    - `lightning car /dev/ttyACM0 [macbook address]:25565`
 3. You should see the logs confirm a successful connection. After a second or
    two, you will be able to steer the car with the left stick of your gamepad.
    Forward and reverse is mapped to the right and left triggers respectively.
-  - For safety, throttle is limited to 0 by default. Run with `--throttle-limit
-    1.0` to enable max throttle.
+    - For safety, throttle is limited to 0 by default. Run with `--throttle-limit
+      1.0` to enable max throttle.
