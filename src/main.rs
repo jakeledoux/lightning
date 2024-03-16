@@ -2,19 +2,16 @@ use std::time::Duration;
 
 use car::ThrottleLimit;
 use clap::Parser;
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::{TcpListener, TcpStream},
-};
+use controller::ControlFrame;
 use tracing::{event, level_filters::LevelFilter, Level};
 use tracing_subscriber::EnvFilter;
 
-use crate::controller::{ControlFrame, Controller};
+use crate::controller::Controller;
+use crate::sockets::SocketClient;
 
 pub mod car;
 pub mod controller;
-
-const MSG_READY: u8 = 0xFF;
+pub mod sockets;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -71,19 +68,10 @@ async fn run_car(car_args: CarArgs, address: &str) -> anyhow::Result<()> {
     )?;
 
     // connect to controller
-    event!(Level::INFO, "attempting connection to: {address}");
-    let mut stream = TcpStream::connect(address).await?;
-    event!(Level::INFO, "connection established");
+    let mut client = SocketClient::new_client(address).await?;
 
     loop {
-        // transmit ready signal
-        stream.write_u8(MSG_READY).await?;
-
-        // read frame from socket
-        let message_length = stream.read_u64().await?;
-        let mut buf = vec![0; message_length as usize];
-        stream.read_exact(&mut buf).await?;
-        let frame: ControlFrame = bincode::deserialize(&buf)?;
+        let frame: ControlFrame = client.request_message().await?;
 
         if car_conn.send(frame).await.is_err() {
             event!(Level::ERROR, "failed to send data to car");
@@ -97,36 +85,11 @@ async fn run_controller(gamepad_args: GamePadArgs, port: u128) -> anyhow::Result
         Controller::find_any_controller(Duration::from_secs(gamepad_args.controller_timeout))
             .await?;
 
-    // await TCP connection from car
-    event!(Level::INFO, "listening TCP on: {port}");
-    let listener = TcpListener::bind(format!("0.0.0.0:{port}")).await?;
-    let (mut socket, _) = listener.accept().await?;
-    event!(
-        Level::INFO,
-        "connection established with: {:?}",
-        socket.peer_addr()?
-    );
-
-    // TODO: abstract this message framing logic to a struct?
+    let mut client = SocketClient::new_host(port).await?;
 
     loop {
-        // wait for ready signal
-        let ready = socket.read_u8().await?;
-        if ready != MSG_READY {
-            continue;
-        };
-
-        let frame = controller.poll();
-        if frame.start {
-            break;
-        }
-        let encoded: Vec<u8> = bincode::serialize(&frame)?;
-        socket.write_u64(encoded.len() as u64).await?;
-        socket.write(&encoded).await?;
-        // TODO: rate-limit
+        client.transmit_message(|| controller.poll()).await?;
     }
-
-    Ok(())
 }
 
 async fn run_integrated(car_args: CarArgs, gamepad_args: GamePadArgs) -> anyhow::Result<()> {
