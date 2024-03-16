@@ -1,2 +1,6 @@
-Carduino is the Arduino software that handles communication between the
-Raspberry Pi and the hardware.
+# carduino
+
+The Arduino code that relays instructions received over serial to the ESC and
+servo on the car itself.
+
+Much of this code is adapted from a previous project I did with this car.
