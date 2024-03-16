@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use car::{CarMessage, ThrottleLimit};
+use car::ThrottleLimit;
 use clap::Parser;
 use controller::ControlFrame;
 use tracing::{event, level_filters::LevelFilter, Level};
