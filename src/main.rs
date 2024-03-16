@@ -27,11 +27,14 @@ enum Command {
     Car {
         #[clap(flatten)]
         car_args: CarArgs,
+        address: String,
     },
     /// Connect to gamepad and send commands to car
     Controller {
         #[clap(flatten)]
         gamepad_args: GamePadArgs,
+        #[arg(default_value_t = 25565)]
+        port: u128,
     },
     /// Run both Car and Controller components locally
     Integrated {
@@ -55,11 +58,10 @@ struct CarArgs {
     #[arg(long, default_value_t = 0.0)]
     throttle_limit: f32,
     // TTY path to Arduino serial connection
-    #[arg(long, default_value = "/dev/cu.usbmodem11121301")]
     tty_path: String,
 }
 
-async fn run_car(car_args: CarArgs) -> anyhow::Result<()> {
+async fn run_car(car_args: CarArgs, address: &str) -> anyhow::Result<()> {
     // connect to car
     let mut car_conn = car::CarConn::connect(
         &car_args.tty_path,
@@ -67,7 +69,6 @@ async fn run_car(car_args: CarArgs) -> anyhow::Result<()> {
     )?;
 
     // connect to controller
-    let address = "127.0.0.1:25565";
     event!(Level::INFO, "attempting connection to: {address}");
     let mut stream = TcpStream::connect(address).await?;
     event!(Level::INFO, "connection established");
@@ -85,15 +86,15 @@ async fn run_car(car_args: CarArgs) -> anyhow::Result<()> {
     }
 }
 
-async fn run_controller(gamepad_args: GamePadArgs) -> anyhow::Result<()> {
+async fn run_controller(gamepad_args: GamePadArgs, port: u128) -> anyhow::Result<()> {
     // connect controller
     let mut controller =
         Controller::find_any_controller(Duration::from_secs(gamepad_args.controller_timeout))
             .await?;
 
     // await TCP connection from car
-    event!(Level::INFO, "listening TCP");
-    let listener = TcpListener::bind("0.0.0.0:25565").await?;
+    event!(Level::INFO, "listening TCP on: {port}");
+    let listener = TcpListener::bind(format!("0.0.0.0:{port}")).await?;
     let (mut socket, _) = listener.accept().await?;
     event!(
         Level::INFO,
@@ -159,8 +160,8 @@ async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     match args.command {
-        Command::Car { car_args } => run_car(car_args).await,
-        Command::Controller { gamepad_args } => run_controller(gamepad_args).await,
+        Command::Car { car_args, address } => run_car(car_args, &address).await,
+        Command::Controller { gamepad_args, port } => run_controller(gamepad_args, port).await,
         Command::Integrated {
             car_args,
             gamepad_args,

@@ -21,6 +21,7 @@ pub struct Controller {
 impl Controller {
     pub async fn find_any_controller(timeout: Duration) -> Result<Self, Elapsed> {
         let mut gilrs = Gilrs::new().unwrap();
+        event!(Level::INFO, "Searching for controllers...");
         tokio::time::timeout(timeout, async {
             loop {
                 while let Some(Event { id, .. }) = gilrs.next_event() {
