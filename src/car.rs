@@ -30,14 +30,14 @@ impl ThrottleLimit {
 
 #[derive(Debug, Clone, Copy)]
 pub struct CarMessage {
-    steering: u32,
-    throttle: u32,
-    beep: bool,
+    pub steering: u32,
+    pub throttle: i32,
+    pub beep: bool,
 }
 
 impl CarMessage {
     pub fn with_throttle_limit(mut self, limit: ThrottleLimit) -> Self {
-        self.throttle = (self.throttle as f32 * limit.value()).round() as u32;
+        self.throttle = (self.throttle as f32 * limit.value()).round() as i32;
         self
     }
 
@@ -57,7 +57,7 @@ impl From<ControlFrame> for CarMessage {
     fn from(value: ControlFrame) -> Self {
         Self {
             steering: (value.steering * STEER_GAIN + STEER_MIDPOINT).round() as u32,
-            throttle: (value.throttle * THROTTLE_GAIN).round() as u32,
+            throttle: (value.throttle * THROTTLE_GAIN).round() as i32,
             beep: value.beep,
         }
     }
