@@ -24,7 +24,7 @@ pre-build = [
 ]
 
 [profile.release]
-opt-level = "z"
+opt-level = 3
 strip = true
 lto = true
 codegen-units = 1
