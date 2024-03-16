@@ -14,6 +14,8 @@ use crate::controller::{ControlFrame, Controller};
 pub mod car;
 pub mod controller;
 
+const MSG_READY: u8 = 0xFF;
+
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -74,6 +76,9 @@ async fn run_car(car_args: CarArgs, address: &str) -> anyhow::Result<()> {
     event!(Level::INFO, "connection established");
 
     loop {
+        // transmit ready signal
+        stream.write_u8(MSG_READY).await?;
+
         // read frame from socket
         let message_length = stream.read_u64().await?;
         let mut buf = vec![0; message_length as usize];
@@ -102,8 +107,15 @@ async fn run_controller(gamepad_args: GamePadArgs, port: u128) -> anyhow::Result
         socket.peer_addr()?
     );
 
+    // TODO: abstract this message framing logic to a struct?
+
     loop {
-        tokio::time::sleep(Duration::from_millis(50)).await;
+        // wait for ready signal
+        let ready = socket.read_u8().await?;
+        if ready != MSG_READY {
+            continue;
+        };
+
         let frame = controller.poll();
         if frame.start {
             break;
