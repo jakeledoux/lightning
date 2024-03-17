@@ -58,7 +58,7 @@ impl SocketClient {
             // transmit message
             let encoded: Vec<u8> = bincode::serialize(&payload_fn())?;
             self.stream.write_u64(encoded.len() as u64).await?;
-            self.stream.write(&encoded).await?;
+            self.stream.write_all(&encoded).await?;
             return Ok(());
         }
     }

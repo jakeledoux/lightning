@@ -88,7 +88,7 @@ impl CarConn {
             tokio::time::sleep_until(last_message + MIN_MESSAGE_INTERVAL).await;
         }
 
-        self.port.write(
+        self.port.write_all(
             &CarMessage::from(frame)
                 .with_throttle_limit(self.throttle_limit)
                 .bytes(),
