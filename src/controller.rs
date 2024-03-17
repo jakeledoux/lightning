@@ -24,7 +24,7 @@ impl Controller {
         event!(Level::INFO, "Searching for controllers...");
         tokio::time::timeout(timeout, async {
             loop {
-                while let Some(Event { id, .. }) = gilrs.next_event() {
+                if let Some(Event { id, .. }) = gilrs.next_event() {
                     event!(Level::INFO, "Connected to {}", gilrs.gamepad(id).name());
                     return Self {
                         gilrs,
