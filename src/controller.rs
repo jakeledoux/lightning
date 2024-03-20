@@ -9,7 +9,7 @@ use tracing::{event, Level};
 pub struct ControlFrame {
     pub steering: f32,
     pub throttle: f32,
-    pub beep: bool,
+    pub horn: bool,
     pub start: bool,
 }
 
@@ -70,7 +70,7 @@ impl Controller {
             steering: Self::read_axis(&gamepad, Axis::LeftStickX),
             throttle: Self::read_button(&gamepad, Button::RightTrigger2)
                 - Self::read_button(&gamepad, Button::LeftTrigger2),
-            beep: gamepad.is_pressed(Button::South),
+            horn: gamepad.is_pressed(Button::South),
             start: gamepad.is_pressed(Button::Start),
         }
     }

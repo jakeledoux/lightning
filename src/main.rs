@@ -65,7 +65,8 @@ async fn run_car(car_args: CarArgs, address: &str) -> anyhow::Result<()> {
     let mut car_conn = car::CarConn::connect(
         &car_args.tty_path,
         ThrottleLimit::Limit(car_args.throttle_limit),
-    )?;
+    )
+    .await?;
 
     // connect to controller
     let mut client = SocketClient::new_client(address).await?;
@@ -102,7 +103,8 @@ async fn run_integrated(car_args: CarArgs, gamepad_args: GamePadArgs) -> anyhow:
     let mut car_conn = car::CarConn::connect(
         &car_args.tty_path,
         ThrottleLimit::Limit(car_args.throttle_limit),
-    )?;
+    )
+    .await?;
 
     loop {
         let frame = controller.poll();
