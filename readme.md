@@ -29,8 +29,7 @@ connected.
 
 ### Pairing bluetooth on Raspberry Pi
 
-[RPi bluetoothctl example]
-(https://bluedot.readthedocs.io/en/latest/pairpipi.html#using-the-command-line)
+[RPi bluetoothctl example](https://bluedot.readthedocs.io/en/latest/pairpipi.html#using-the-command-line)
 
 Once paired, issue the command `trust [address]` to automatically accept future
 connections with that controller.
