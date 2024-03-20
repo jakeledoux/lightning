@@ -12,3 +12,12 @@ deploy: rpi
 		./target/aarch64-unknown-linux-gnu/release/lightning \
 		$(USER)@$(HOSTNAME):/home/$(USER)
 
+
+format: format-cpp
+
+format-cpp:
+	clang-format \
+		-i \
+		--style Microsoft \
+		carduino/carduino.ino
+		
