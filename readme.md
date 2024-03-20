@@ -5,7 +5,7 @@ will contain all the code necessary for remotely controlling it with a gamepad,
 live video streaming, and running the self-driving model. Model training will
 likely be done outside this repo.
 
-## usage
+## Usage
 
 Running the binary (`lightning` if installed, or `cargo run --release`) will
 print out usage instructions.
