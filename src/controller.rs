@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use tokio::time::error::Elapsed;
 use tracing::{event, Level};
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 pub struct ControlFrame {
     pub steering: f32,
     pub throttle: f32,

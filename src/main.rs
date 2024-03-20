@@ -3,6 +3,7 @@ use std::time::Duration;
 use car::ThrottleLimit;
 use clap::Parser;
 use controller::ControlFrame;
+use tokio::time::Instant;
 use tracing::{event, level_filters::LevelFilter, Level};
 use tracing_subscriber::EnvFilter;
 
@@ -41,6 +42,11 @@ enum Command {
         car_args: CarArgs,
         #[clap(flatten)]
         gamepad_args: GamePadArgs,
+    },
+    /// Steer left and right for debugging purposes
+    Demo {
+        #[clap(flatten)]
+        car_args: CarArgs,
     },
 }
 
@@ -120,6 +126,26 @@ async fn run_integrated(car_args: CarArgs, gamepad_args: GamePadArgs) -> anyhow:
     Ok(())
 }
 
+async fn run_demo(car_args: CarArgs) -> anyhow::Result<()> {
+    // connect to car
+    let mut car_conn = car::CarConn::connect(
+        &car_args.tty_path,
+        ThrottleLimit::Limit(car_args.throttle_limit),
+    )
+    .await?;
+
+    let mut frame = ControlFrame::default();
+
+    let started = Instant::now();
+    loop {
+        frame.steering = (started.elapsed().as_millis() as f32 / 1000.0).sin();
+
+        if car_conn.send(frame).await.is_err() {
+            event!(Level::ERROR, "failed to send data to car");
+        };
+    }
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // attach log subscriber
@@ -143,5 +169,6 @@ async fn main() -> anyhow::Result<()> {
             car_args,
             gamepad_args,
         } => run_integrated(car_args, gamepad_args).await,
+        Command::Demo { car_args } => run_demo(car_args).await,
     }
 }
