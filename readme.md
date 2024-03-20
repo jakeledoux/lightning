@@ -24,3 +24,13 @@ connected.
    Forward and reverse is mapped to the right and left triggers respectively.
     - For safety, throttle is limited to 0 by default. Run with `--throttle-limit
       1.0` to enable max throttle.
+
+## Resources
+
+### Pairing bluetooth on Raspberry Pi
+
+[RPi bluetoothctl example]
+(https://bluedot.readthedocs.io/en/latest/pairpipi.html#using-the-command-line)
+
+Once paired, issue the command `trust [address]` to automatically accept future
+connections with that controller.
