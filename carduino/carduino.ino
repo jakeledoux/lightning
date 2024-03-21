@@ -48,7 +48,6 @@ void setup()
     // establish serial connection
     Serial.begin(BAUD_RATE);
     Serial.setTimeout(3);
-    Serial.write((uint8_t)HANDSHAKE);
 }
 
 void loop()
@@ -67,6 +66,10 @@ void loop()
 
         // transmit checksum
         Serial.write(msg.steering + msg.throttle + msg.horn);
+    }
+    else
+    {
+        Serial.write((uint8_t)HANDSHAKE);
     }
 
     // reset controls if "timeout" reached

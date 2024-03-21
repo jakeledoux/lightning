@@ -16,8 +16,5 @@ deploy: rpi
 format: format-cpp
 
 format-cpp:
-	clang-format \
-		-i \
-		--style Microsoft \
-		carduino/carduino.ino
+	clang-format -i carduino/carduino.ino
 		
