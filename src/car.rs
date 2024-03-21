@@ -6,6 +6,7 @@ use crate::controller::ControlFrame;
 
 const BAUD_RATE: u32 = 38400;
 const HANDSHAKE: u8 = 0xFF;
+const READY: u8 = 0x9E;
 
 const STEER_GAIN: f32 = 40.0;
 const STEER_MIDPOINT: f32 = 90.0;
@@ -13,13 +14,13 @@ const THROTTLE_GAIN: f32 = 100.0;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Car failed handshake")]
-    HandshakeError,
+    #[error("Car {0}")]
+    StatusError(&'static str),
     #[error("Car did not return correct checksum")]
     ChecksumError,
-    #[error("error with the serial connection")]
+    #[error(transparent)]
     SerialError(#[from] tokio_serial::Error),
-    #[error("I/O error")]
+    #[error(transparent)]
     IoError(#[from] std::io::Error),
 }
 
@@ -76,7 +77,7 @@ impl CarConn {
         let mut port = tokio_serial::new(tty_path, BAUD_RATE).open_native_async()?;
         event!(Level::INFO, "connecting to car");
         if port.read_u8().await? != HANDSHAKE {
-            return Err(Error::HandshakeError);
+            return Err(Error::StatusError("failed handshake"));
         }
         event!(Level::INFO, "connection established");
         Ok(Self {
@@ -88,6 +89,18 @@ impl CarConn {
     pub async fn send(&mut self, frame: ControlFrame) -> Result<(), Error> {
         let message = CarMessage::from(frame);
 
+        // wait for ready signal
+        match self.port.read_u8().await {
+            Ok(READY) => {} // good
+            Ok(_) => {
+                return Err(Error::StatusError("mangled ready signal"));
+            }
+            Err(_) => {
+                return Err(Error::StatusError("is not ready"));
+            }
+        }
+
+        // write controls
         self.port
             .write_all(
                 &CarMessage::from(frame)
@@ -96,6 +109,7 @@ impl CarConn {
             )
             .await?;
 
+        // verify checksum
         let sum = self.port.read_u8().await?;
         let checksum = message
             .steering

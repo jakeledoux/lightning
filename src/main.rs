@@ -80,8 +80,8 @@ async fn run_car(car_args: CarArgs, address: &str) -> anyhow::Result<()> {
     loop {
         let frame: ControlFrame = client.request_message().await?;
 
-        if car_conn.send(frame).await.is_err() {
-            event!(Level::ERROR, "failed to send data to car");
+        if let Err(e) = car_conn.send(frame).await {
+            event!(Level::ERROR, "failed to send data to car: {e}");
         };
     }
 }
@@ -119,8 +119,8 @@ async fn run_integrated(car_args: CarArgs, gamepad_args: GamePadArgs) -> anyhow:
             break;
         }
 
-        if car_conn.send(frame).await.is_err() {
-            event!(Level::ERROR, "failed to send data to car");
+        if let Err(e) = car_conn.send(frame).await {
+            event!(Level::ERROR, "failed to send data to car: {e}");
         };
     }
     Ok(())
@@ -140,8 +140,8 @@ async fn run_demo(car_args: CarArgs) -> anyhow::Result<()> {
     loop {
         frame.steering = (started.elapsed().as_millis() as f32 / 1000.0).sin();
 
-        if car_conn.send(frame).await.is_err() {
-            event!(Level::ERROR, "failed to send data to car");
+        if let Err(e) = car_conn.send(frame).await {
+            event!(Level::ERROR, "failed to send data to car: {e}");
         };
     }
 }

@@ -2,6 +2,7 @@
 
 #define BAUD_RATE 38400
 #define HANDSHAKE 0xFF
+#define READY 0x9E
 
 #define STEER_PIN 5
 #define MOTOR_PIN 3
@@ -48,6 +49,7 @@ void setup()
     // establish serial connection
     Serial.begin(BAUD_RATE);
     Serial.setTimeout(3);
+    Serial.write((uint8_t)HANDSHAKE);
 }
 
 void loop()
@@ -67,9 +69,9 @@ void loop()
         // transmit checksum
         Serial.write(msg.steering + msg.throttle + msg.horn);
     }
-    else
+    else if (iterSinceLastCommand == 0)
     {
-        Serial.write((uint8_t)HANDSHAKE);
+        Serial.write((uint8_t)READY);
     }
 
     // reset controls if "timeout" reached
