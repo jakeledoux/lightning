@@ -1,8 +1,7 @@
 #include <Servo.h>
 
-#define BAUD_RATE 38400
+#define BAUD_RATE 115200
 #define HANDSHAKE 0xFF
-#define READY 0x9E
 
 #define STEER_PIN 5
 #define MOTOR_PIN 3
@@ -29,7 +28,7 @@ struct ControlMessage
 
 const ControlMessage DEFAULT_CONTROL_MESSAGE = {90, 0, false};
 
-int iterSinceLastCommand = 0;
+int cyclesSinceLastCommand = 0;
 ControlMessage msg = DEFAULT_CONTROL_MESSAGE;
 
 void setup()
@@ -55,7 +54,7 @@ void setup()
 void loop()
 {
     // update controls based on serial input
-    if (Serial.available())
+    if (Serial.available() > 0)
     {
         // receive incoming bytes
         char bytes[3];
@@ -68,17 +67,17 @@ void loop()
 
         // transmit checksum
         Serial.write(msg.steering + msg.throttle + msg.horn);
-    }
-    else if (iterSinceLastCommand == 0)
-    {
-        Serial.write((uint8_t)READY);
+
+        // reset cycles since last command
+        cyclesSinceLastCommand = 0;
     }
 
     // reset controls if "timeout" reached
-    if (iterSinceLastCommand++ > PANIC_INTERVAL)
+    if (cyclesSinceLastCommand++ > PANIC_INTERVAL)
     {
         msg = DEFAULT_CONTROL_MESSAGE;
-        iterSinceLastCommand = 0;
+        // reset cycles
+        cyclesSinceLastCommand = 0;
     }
 
     // execute control commands

@@ -121,7 +121,7 @@ async fn run_integrated(car_args: CarArgs, gamepad_args: GamePadArgs) -> anyhow:
 
         if let Err(e) = car_conn.send(frame).await {
             event!(Level::ERROR, "failed to send data to car: {e}");
-        };
+        }
     }
     Ok(())
 }

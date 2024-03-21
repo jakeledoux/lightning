@@ -4,9 +4,8 @@ use tracing::{event, Level};
 
 use crate::controller::ControlFrame;
 
-const BAUD_RATE: u32 = 38400;
+const BAUD_RATE: u32 = 115200;
 const HANDSHAKE: u8 = 0xFF;
-const READY: u8 = 0x9E;
 
 const STEER_GAIN: f32 = 40.0;
 const STEER_MIDPOINT: f32 = 90.0;
@@ -74,12 +73,15 @@ pub struct CarConn {
 
 impl CarConn {
     pub async fn connect(tty_path: &str, throttle_limit: ThrottleLimit) -> Result<Self, Error> {
-        let mut port = tokio_serial::new(tty_path, BAUD_RATE).open_native_async()?;
         event!(Level::INFO, "connecting to car");
+
+        let mut port = tokio_serial::new(tty_path, BAUD_RATE).open_native_async()?;
         if port.read_u8().await? != HANDSHAKE {
             return Err(Error::StatusError("failed handshake"));
         }
+
         event!(Level::INFO, "connection established");
+
         Ok(Self {
             throttle_limit,
             port,
@@ -87,27 +89,10 @@ impl CarConn {
     }
 
     pub async fn send(&mut self, frame: ControlFrame) -> Result<(), Error> {
-        let message = CarMessage::from(frame);
-
-        // wait for ready signal
-        match self.port.read_u8().await {
-            Ok(READY) => {} // good
-            Ok(_) => {
-                return Err(Error::StatusError("mangled ready signal"));
-            }
-            Err(_) => {
-                return Err(Error::StatusError("is not ready"));
-            }
-        }
+        let message = CarMessage::from(frame).with_throttle_limit(self.throttle_limit);
 
         // write controls
-        self.port
-            .write_all(
-                &CarMessage::from(frame)
-                    .with_throttle_limit(self.throttle_limit)
-                    .bytes(),
-            )
-            .await?;
+        self.port.write_all(&message.bytes()).await?;
 
         // verify checksum
         let sum = self.port.read_u8().await?;
