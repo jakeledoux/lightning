@@ -11,6 +11,7 @@ pub struct ControlFrame {
     pub throttle: f32,
     pub horn: bool,
     pub start: bool,
+    pub record: bool,
 }
 
 pub struct Controller {
@@ -72,6 +73,7 @@ impl Controller {
                 - Self::read_button(&gamepad, Button::LeftTrigger2),
             horn: gamepad.is_pressed(Button::South),
             start: gamepad.is_pressed(Button::Start),
+            record: gamepad.is_pressed(Button::East),
         }
     }
 

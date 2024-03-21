@@ -1,8 +1,14 @@
+# python
 __pycache__
 *.pyc
-.DS_Store
 venv
 
+# macOS
+.DS_Store
+
+# project specific
+TODO
+training_data/
 
 # Added by cargo
 

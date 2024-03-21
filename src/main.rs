@@ -3,6 +3,7 @@ use std::time::Duration;
 use car::ThrottleLimit;
 use clap::Parser;
 use controller::ControlFrame;
+use record::{DataFrame, Recorder};
 use tokio::time::Instant;
 use tracing::{event, level_filters::LevelFilter, Level};
 use tracing_subscriber::EnvFilter;
@@ -12,6 +13,7 @@ use crate::sockets::SocketClient;
 
 pub mod car;
 pub mod controller;
+pub mod record;
 pub mod sockets;
 
 #[derive(Parser, Debug)]
@@ -42,6 +44,8 @@ enum Command {
         car_args: CarArgs,
         #[clap(flatten)]
         gamepad_args: GamePadArgs,
+        #[arg(long)]
+        record: bool,
     },
     /// Steer left and right for debugging purposes
     Demo {
@@ -99,7 +103,11 @@ async fn run_controller(gamepad_args: GamePadArgs, port: u128) -> anyhow::Result
     }
 }
 
-async fn run_integrated(car_args: CarArgs, gamepad_args: GamePadArgs) -> anyhow::Result<()> {
+async fn run_integrated(
+    car_args: CarArgs,
+    gamepad_args: GamePadArgs,
+    record: bool,
+) -> anyhow::Result<()> {
     // connect controller
     let mut controller =
         Controller::find_any_controller(Duration::from_secs(gamepad_args.controller_timeout))
@@ -112,17 +120,31 @@ async fn run_integrated(car_args: CarArgs, gamepad_args: GamePadArgs) -> anyhow:
     )
     .await?;
 
-    loop {
-        let frame = controller.poll();
+    let mut recorder = if record {
+        Some(Recorder::open("./training_data/").await?)
+    } else {
+        None
+    };
 
-        if frame.start {
+    loop {
+        let controls = controller.poll();
+
+        if controls.start {
             break;
+        } else if controls.record {
+            if let Some(ref mut recorder) = recorder {
+                let data = DataFrame::new(controls);
+                if let Some(result) = recorder.log_every(data, Duration::from_millis(250)).await {
+                    result?;
+                }
+            }
         }
 
-        if let Err(e) = car_conn.send(frame).await {
+        if let Err(e) = car_conn.send(controls).await {
             event!(Level::ERROR, "failed to send data to car: {e}");
         }
     }
+
     Ok(())
 }
 
@@ -168,7 +190,8 @@ async fn main() -> anyhow::Result<()> {
         Command::Integrated {
             car_args,
             gamepad_args,
-        } => run_integrated(car_args, gamepad_args).await,
+            record,
+        } => run_integrated(car_args, gamepad_args, record).await,
         Command::Demo { car_args } => run_demo(car_args).await,
     }
 }
