@@ -490,8 +490,8 @@ class PointCloudStreamer:
     def start_processing_stream(self):
         """Main loop for processing and visualizing the point cloud stream."""
         pcd_o3d = o3d.geometry.PointCloud() # Renamed for clarity (Open3D PointCloud)
-        pcd_o3d.points = o3d.utility.Vector3dVector([[0,0,0]]) # Dummy point
-        pcd_o3d.colors = o3d.utility.Vector3dVector([[0,0,0]])
+        pcd_o3d.points = o3d.utility.Vector3dVector(np.array([[0.0, 0.0, 0.0]], dtype=np.float64)) # Dummy point
+        pcd_o3d.colors = o3d.utility.Vector3dVector(np.array([[0.0, 0.0, 0.0]], dtype=np.float64))
 
         if VISUALIZE:
             vis = o3d.visualization.VisualizerWithKeyCallback()
@@ -583,8 +583,11 @@ class PointCloudStreamer:
                 if VISUALIZE:
                     self.display_occupancy_grid_cv2(traversable_grid, self.current_path, smoothed_steering_command)
                     
-                    pcd_o3d.points = o3d.utility.Vector3dVector(pts_to_display if pts_to_display.size >0 else [[0,0,0]])
-                    pcd_o3d.colors = o3d.utility.Vector3dVector(colors_raw if colors_raw.size > 0 and pts_to_display.size > 0 else [[0,0,0]])
+                    current_points_for_o3d = pts_to_display if pts_to_display.size > 0 else np.array([[0.0,0.0,0.0]], dtype=np.float64)
+                    pcd_o3d.points = o3d.utility.Vector3dVector(current_points_for_o3d)
+                    current_colors_for_o3d = colors_raw if colors_raw.size > 0 and pts_to_display.size > 0 else np.array([[0.0,0.0,0.0]], dtype=np.float64)
+                    pcd_o3d.colors = o3d.utility.Vector3dVector(current_colors_for_o3d)
+
                     vis.update_geometry(pcd_o3d)
 
             except Exception as e:
