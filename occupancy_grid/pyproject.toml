@@ -12,6 +12,8 @@ opencv-python = "^4.11.0.86"
 numpy = "^2.2.6"
 scikit-learn = "^1.6.1"
 open3d = "^0.19.0"
+scipy = "^1.15.3"
+opencv-contrib-python = "^4.11.0.86"
 
 
 [tool.poetry.group.dev.dependencies]
