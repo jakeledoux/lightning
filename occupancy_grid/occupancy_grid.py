@@ -10,8 +10,10 @@ from record3d import Record3DStream
 from threading import Event
 
 # --- Global Configuration ---
+WRITE_STEER = True
 VISUALIZE = bool(os.environ.get("VISUALIZE"))  # Flag to enable/disable Open3D and OpenCV visualizations
 RESET_VIEW_KEY = ord('R') # Key to reset the Open3D visualizer view
+
 
 class PointCloudStreamer:
     """
@@ -19,7 +21,8 @@ class PointCloudStreamer:
     processing it for floor alignment, generating an occupancy grid,
     performing pathfinding, and calculating steering commands.
     """
-    def __init__(self):
+    def __init__(self, steer_file):
+        self.steer_file = steer_file
         self.event = Event()
         self.session = None
         self.DEVICE_TYPE__LIDAR = 1 # Example device type constant
@@ -46,7 +49,7 @@ class PointCloudStreamer:
 
         # Morphological processing for occupancy grid
         self.enable_path_clearance = True # If true, erodes free space to create margin around obstacles
-        self.path_clearance_margin_cells = 3 # Thickness of margin (in cells)
+        self.path_clearance_margin_cells = 5 # Thickness of margin (in cells)
         
         self.enable_morphological_processing = False # For general MORPH_CLOSE on floor (currently unused based on create_occupancy_grid logic)
         self.morph_kernel_size = 5
@@ -59,13 +62,19 @@ class PointCloudStreamer:
 
         # --- Steering Parameters ---
         self.steering_lookahead_distance_cells = 5
-        self.max_steering_angle_rad = np.pi / 4.5  # Approx +/- 40 degrees
+        self.max_steering_angle_rad = np.pi / 7.5
         self.previous_smoothed_steering_command = 0.0
         self.steering_smoothing_alpha = 0.25 # For Exponential Moving Average (EMA)
 
         # --- Display Parameters ---
         self.occupancy_grid_window_name = "Occupancy Grid (OpenCV)"
         self.grid_cell_display_pixels = 2
+
+    def write_steering(self, steer_value: float):
+        self.steer_file.truncate(0)
+        self.steer_file.seek(0)
+        self.steer_file.write(f"{steer_value:0.2f}")
+        self.steer_file.flush()
 
     def get_intrinsic_mat_from_coeffs(self, coeffs):
         """Converts Record3D intrinsic coefficients to a 3x3 matrix."""
@@ -577,6 +586,8 @@ class PointCloudStreamer:
                 # Consider printing less frequently if too verbose
                 if pathfinding_frame_counter == 0: # Print when pathfinding attempts to run
                      print(f"Path found: {'Yes' if self.current_path else 'No'}, Steering: {smoothed_steering_command:.2f}")
+                     if WRITE_STEER:
+                         self.write_steering(smoothed_steering_command)
 
 
                 # --- Display ---
@@ -614,19 +625,20 @@ class PointCloudStreamer:
 
 
 if __name__ == "__main__":
-    streamer = PointCloudStreamer()
-    try:
-        streamer.connect_to_device(dev_idx=0)
-        streamer.start_processing_stream()
-    except RuntimeError as e:
-        print(e)
-    except KeyboardInterrupt:
-        print("Stream stopped by user (Ctrl+C).")
-    finally:
-        if streamer.session is not None:
-            # Make sure to stop the session if it was started
-            # This might be handled by Record3D's __del__ or similar,
-            # but explicit stop/disconnect is safer if available.
-            # streamer.session.stop() # If such a method exists
-            print("Ensuring Record3D session is cleaned up if possible.")
-        print("Program terminated.")
+    with open("/tmp/lightning-steer", "w") as f:
+        streamer = PointCloudStreamer(f)
+        try:
+            streamer.connect_to_device(dev_idx=0)
+            streamer.start_processing_stream()
+        except RuntimeError as e:
+            print(e)
+        except KeyboardInterrupt:
+            print("Stream stopped by user (Ctrl+C).")
+        finally:
+            if streamer.session is not None:
+                # Make sure to stop the session if it was started
+                # This might be handled by Record3D's __del__ or similar,
+                # but explicit stop/disconnect is safer if available.
+                # streamer.session.stop() # If such a method exists
+                print("Ensuring Record3D session is cleaned up if possible.")
+            print("Program terminated.")

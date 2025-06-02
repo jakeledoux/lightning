@@ -1,3 +1,5 @@
+use std::fs;
+use std::path::PathBuf;
 use std::time::Duration;
 
 use car::ThrottleLimit;
@@ -5,6 +7,7 @@ use clap::Parser;
 use controller::ControlFrame;
 use record::{DataFrame, Recorder};
 use tokio::time::Instant;
+use tracing::warn;
 use tracing::{event, level_filters::LevelFilter, Level};
 use tracing_subscriber::EnvFilter;
 
@@ -46,6 +49,13 @@ enum Command {
         gamepad_args: GamePadArgs,
         #[arg(long)]
         record: bool,
+    },
+    /// Send commands from file to car
+    File {
+        #[clap(flatten)]
+        car_args: CarArgs,
+        #[clap(default_value = "/tmp/lightning-steer")]
+        control_file: PathBuf,
     },
     /// Steer left and right for debugging purposes
     Demo {
@@ -148,6 +158,32 @@ async fn run_integrated(
     Ok(())
 }
 
+async fn run_file(car_args: CarArgs, control_file: PathBuf) -> anyhow::Result<()> {
+    // connect to car
+    let mut car_conn = car::CarConn::connect(
+        &car_args.tty_path,
+        ThrottleLimit::Limit(car_args.throttle_limit),
+    )
+    .await?;
+
+    let mut frame = ControlFrame::default();
+    loop {
+        let Ok(file_contents) = fs::read_to_string(&control_file) else {
+            event!(Level::ERROR, "failed to read control file");
+            continue;
+        };
+        let Ok(steering) = file_contents.parse::<f32>() else {
+            event!(Level::ERROR, "invalid control value in steering file");
+            continue;
+        };
+
+        frame.steering = steering;
+        if let Err(e) = car_conn.send(frame).await {
+            event!(Level::ERROR, "failed to send data to car: {e}");
+        };
+    }
+}
+
 async fn run_demo(car_args: CarArgs) -> anyhow::Result<()> {
     // connect to car
     let mut car_conn = car::CarConn::connect(
@@ -184,7 +220,7 @@ async fn main() -> anyhow::Result<()> {
     // parse CLI arguments
     let args = Args::parse();
 
-    match args.command {
+    let var_name = match args.command {
         Command::Car { car_args, address } => run_car(car_args, &address).await,
         Command::Controller { gamepad_args, port } => run_controller(gamepad_args, port).await,
         Command::Integrated {
@@ -192,6 +228,11 @@ async fn main() -> anyhow::Result<()> {
             gamepad_args,
             record,
         } => run_integrated(car_args, gamepad_args, record).await,
+        Command::File {
+            car_args,
+            control_file,
+        } => run_file(car_args, control_file).await,
         Command::Demo { car_args } => run_demo(car_args).await,
-    }
+    };
+    var_name
 }
